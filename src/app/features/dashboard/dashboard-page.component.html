@@ -1,0 +1,294 @@
+<ng-container *ngIf="state$ | async as data; else loadingTemplate">
+  <div class="dashboard-root min-h-screen p-6 lg:p-12 space-y-12">
+    
+    <!-- HEADER & SENTINEL ALERT -->
+    <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+      <div>
+        <h1 class="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/40 tracking-tight">
+          Panóptico Familiar
+        </h1>
+        <p class="text-white/40 font-medium tracking-widest uppercase text-[10px] mt-2">
+          Nodo: {{ data.familyCode }} • Hito: {{ data.currentMilestone }}
+        </p>
+      </div>
+
+      <!-- [SDD Spec] PROTOCOLO SENTINEL: Capa de Contención Proactiva -->
+      <app-sentinel-alert [active]="data.isSentinelActive"></app-sentinel-alert>
+    </header>
+
+    <!-- Narrative Guidance Engine -->
+    <app-narrative-companion module="dashboard"></app-narrative-companion>
+    
+    <!-- [SDD Analytics v2] ABANDONMENT RISK BANNER — visible sólo si HIGH/CRITICAL -->
+    <app-abandonment-risk-banner></app-abandonment-risk-banner>
+
+    <!-- [SDD Spec] MILESTONE ADVANCE REINFORCEMENT -->
+    <!-- Activación determinista: Solo visible si el motor de validación aprueba el avance -->
+    <div *ngIf="readyToAdvance$ | async" 
+         class="glass-premium border-emerald-500/50 p-6 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-6 animate-in slide-in-from-top duration-700 bg-emerald-500/5">
+      <div class="flex items-center gap-6">
+        <div class="w-12 h-12 bg-emerald-500/20 rounded-2xl flex items-center justify-center text-2xl animate-bounce">
+          🏆
+        </div>
+        <div>
+          <h3 class="text-xl font-bold text-white/90">¡Hito Completado!</h3>
+          <p class="text-white/60 text-sm">Habéis demostrado la coherencia necesaria. El nodo familiar está listo para evolucionar.</p>
+        </div>
+      </div>
+      <button (click)="advanceMilestone()" 
+              class="px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-black font-black uppercase tracking-widest text-xs rounded-2xl transition-all hover:scale-105 active:scale-95 shadow-[0_10px_30px_rgba(16,185,129,0.3)]">
+        Evolucionar Nodo
+      </button>
+    </div>
+
+    <!-- STATS GRID -->
+    <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <app-icf-stat-card 
+        label="Índice de Conciencia (ICF)" 
+        [value]="data.latestGlobalScore" 
+        [status]="data.latestConsciousnessLabel"
+        theme="theme-harmony">
+      </app-icf-stat-card>
+      
+      <app-icf-stat-card 
+        label="Progreso del Pilar" 
+        [value]="data.pillarProgress" 
+        status="EN RUTA DE TRANSFORMACIÓN"
+        theme="theme-growth">
+      </app-icf-stat-card>
+
+      <app-icf-stat-card 
+        label="Crecimiento de Conciencia" 
+        [value]="data.awarenessGrowth" 
+        status="EVOLUCIÓN SEMANAL"
+        theme="theme-peace">
+      </app-icf-stat-card>
+
+      <app-icf-stat-card 
+        label="Observación Consciente (IOC)" 
+        [value]="(iocScore$ | async) ?? 50" 
+        status="SINTONÍA EMOCIONAL IA"
+        theme="theme-growth">
+      </app-icf-stat-card>
+    </section>
+
+    <!-- [IF-TOS] ESTADO OPERACIONAL DEL SCANNER -->
+    <ng-container *ngIf="operationalState$ | async as tosState">
+      <div class="tos-banner glass-premium animate-in fade-in slide-in-from-bottom-4 duration-700"
+           [attr.data-state]="tosState.operationalState">
+        <div class="tos-left">
+          <div class="tos-icon" [ngStyle]="{'background': tosStateColor(tosState.operationalState) + '22', 'border-color': tosStateColor(tosState.operationalState) + '44'}">
+            {{ tosStateGlyph(tosState.operationalState) }}
+          </div>
+          <div class="tos-info">
+            <div class="tos-tag">IF-TOS · ESTADO OPERACIONAL</div>
+            <div class="tos-label" [ngStyle]="{'color': tosStateColor(tosState.operationalState)}">
+              {{ tosState.label }}
+            </div>
+            <div class="tos-desc">{{ tosState.description }}</div>
+          </div>
+        </div>
+        <div class="tos-right">
+          <span class="tos-badge" [ngClass]="tosStateClass(tosState.operationalState)">
+            {{ tosState.operationalState }}
+          </span>
+          <a routerLink="/evaluations/inferences" class="tos-link">
+            Ver inferencias →
+          </a>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- [IF-ALT] ALERTAS CLÍNICAS ACTIVAS -->
+    <ng-container *ngIf="alerts$ | async as alerts">
+      <div *ngIf="alerts.length > 0"
+           class="space-y-3 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <h4 class="text-white/30 uppercase tracking-widest text-[10px] font-black flex items-center gap-2">
+          <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_6px_rgba(239,68,68,0.7)]"></span>
+          IF-ALT · {{ alerts.length }} Alerta{{ alerts.length === 1 ? '' : 's' }} Clínica{{ alerts.length === 1 ? '' : 's' }} Activa{{ alerts.length === 1 ? '' : 's' }}
+        </h4>
+        <div *ngFor="let alert of alerts"
+             class="flex items-start gap-4 p-4 rounded-2xl border animate-in fade-in duration-500"
+             [ngStyle]="{
+               'background': alertSeverityColor(alert.severity) + '0d',
+               'border-color': alertSeverityColor(alert.severity) + '30'
+             }">
+          <span class="text-lg flex-shrink-0 mt-0.5">{{ alertSeverityIcon(alert.severity) }}</span>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full"
+                    [ngStyle]="{'color': alertSeverityColor(alert.severity), 'background': alertSeverityColor(alert.severity) + '18'}">
+                {{ alert.severity }}
+              </span>
+              <span class="text-white/70 text-xs font-semibold">{{ alert.title }}</span>
+            </div>
+            <p *ngIf="alert.detail" class="text-white/40 text-[11px] leading-snug">{{ alert.detail }}</p>
+          </div>
+          <button (click)="resolveAlert(alert)"
+                  class="flex-shrink-0 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-lg border transition-all hover:opacity-80"
+                  [ngStyle]="{
+                    'color': alertSeverityColor(alert.severity),
+                    'border-color': alertSeverityColor(alert.severity) + '40'
+                  }">
+            Resolver
+          </button>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- [SDD Spec] PROGRESS SNAPSHOT -->
+    <section *ngIf="data.progress" class="glass-premium p-8 rounded-[2rem] border border-white/5 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
+      <div class="flex flex-col md:flex-row justify-between gap-8">
+        <div class="flex-1">
+          <h4 class="text-white/30 uppercase tracking-widest text-[10px] font-black mb-3 flex items-center gap-2">
+            <span class="w-2 h-2 bg-teal-500 rounded-full shadow-lg shadow-teal-500/50"></span>
+            Evolución de Conciencia (ΔICF)
+          </h4>
+          <div class="flex items-baseline gap-2">
+            <span class="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-white/70">
+              {{ data.progress.deltaIcf >= 0 ? '+' : '' }}{{ data.progress.deltaIcf | number:'1.0-0' }}
+            </span>
+            <span class="text-sm font-bold text-teal-500 uppercase tracking-wide">puntos</span>
+          </div>
+          <span class="inline-block mt-3 px-3 py-1 text-[10px] font-black uppercase tracking-wider rounded-full" 
+                [ngClass]="{
+                  'bg-emerald-500/10 text-emerald-500': data.progress.classification === 'MEJORA_FUERTE',
+                  'bg-teal-500/10 text-teal-500': data.progress.classification === 'MEJORA_LEVE',
+                  'bg-amber-500/10 text-amber-500': data.progress.classification === 'ESTANCAMIENTO',
+                  'bg-red-500/10 text-red-500': data.progress.classification === 'DETERIORO',
+                  'bg-indigo-500/10 text-indigo-500': data.progress.classification === 'INICIAL'
+                }">
+            {{ data.progress.classification }}
+          </span>
+          <p class="text-white/60 text-sm mt-5 leading-relaxed font-medium">
+            {{ data.progress.interpretation }}
+          </p>
+        </div>
+        
+        <div class="flex-1 md:border-l md:border-white/5 md:pl-8">
+          <h4 class="text-white/30 uppercase tracking-widest text-[10px] font-black mb-4">Evolución por Dimensiones</h4>
+          <div class="space-y-2.5">
+            <div *ngFor="let dim of data.progress.dimensionEvolution | keyvalue" class="flex justify-between items-center bg-white/[0.02] p-3 rounded-xl border border-white/5 hover:bg-white/[0.05] transition-colors">
+              <span class="text-white/80 text-sm capitalize font-medium">{{ dim.key }}</span>
+              <span class="px-3 py-1 text-xs font-bold rounded-full" 
+                    [ngClass]="dim.value >= 0 ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'">
+                {{ dim.value >= 0 ? '+' : '' }}{{ dim.value | number:'1.0-0' }}
+              </span>
+            </div>
+          </div>
+          
+          <div class="mt-4 p-4 bg-white/[0.02] rounded-xl border-l-2 border-teal-500 text-xs text-white/70">
+            <strong class="text-white/40 uppercase tracking-widest text-[9px] block mb-1">Acción sugerida</strong>
+            {{ data.progress.recommendedAction }}
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- [SDD Spec] LOGBOOK HIGHLIGHTS -->
+    <section class="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
+      <div class="glass-premium p-8 rounded-[2rem] border-white/5 flex flex-col justify-center relative overflow-hidden group hover:border-indigo-500/30 transition-all">
+        <div class="absolute -right-6 -top-6 text-9xl opacity-[0.03] group-hover:opacity-[0.08] transition-opacity rotate-12">📔</div>
+        <h4 class="text-white/30 uppercase tracking-widest text-[10px] font-black mb-4 flex items-center gap-2">
+          <span class="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></span>
+          Último Acuerdo del Nodo
+        </h4>
+        <p class="text-xl md:text-2xl font-medium text-white/90 leading-relaxed italic pr-12">
+          "{{ data.latestFamilyAgreement }}"
+        </p>
+      </div>
+
+      <div class="glass-premium p-8 rounded-[2rem] border-white/5 flex items-center gap-8 group hover:border-amber-500/30 transition-all">
+        <div class="w-20 h-20 rounded-3xl flex items-center justify-center text-4xl shadow-2xl transition-transform group-hover:scale-110" 
+             [ngClass]="data.openLogbookEntriesCount && data.openLogbookEntriesCount > 0 ? 'bg-amber-500/10 text-amber-500' : 'bg-emerald-500/10 text-emerald-500'">
+          {{ data.openLogbookEntriesCount && data.openLogbookEntriesCount > 0 ? '🚨' : '🛡️' }}
+        </div>
+        <div class="flex-1">
+          <h4 class="text-white/30 uppercase tracking-widest text-[10px] font-black">Bitácora Familiar</h4>
+          <p class="text-3xl font-black text-white/90 mt-1">
+            {{ data.openLogbookEntriesCount || 0 }} <span class="text-sm font-medium text-white/40">Situaciones Pendientes</span>
+          </p>
+          <a routerLink="/logbook" class="text-indigo-400 text-[11px] uppercase font-black mt-4 flex items-center gap-2 hover:gap-4 transition-all">
+            GESTIONAR BITÁCORA <span>→</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- RADAR & TIMELINE -->
+    <div class="grid grid-cols-1 xl:grid-cols-12 gap-8">
+      <div class="xl:col-span-4 h-full">
+        <app-consciousness-orbit [scores]="data.dimensionScores" [status]="data.latestConsciousnessLabel"></app-consciousness-orbit>
+      </div>
+
+      <div class="xl:col-span-8 space-y-8">
+        <!-- [SDD Spec] IA COGNITIVE INSIGHT -->
+        <app-ai-insight-panel 
+          [recommendation]="data.aiRecommendation"
+          [trend]="data.riskTrend">
+        </app-ai-insight-panel>
+
+        <!-- [SDD Spec] IA CRITICAL ANALYSIS (COLLAPSIBLE) -->
+        <div *ngIf="data.planAiReport" class="glass-premium p-6 rounded-3xl border border-white/10 shadow-[0_8px_32px_0_rgba(99,102,241,0.05)] bg-gradient-to-br from-indigo-500/5 to-purple-500/5 hover:from-indigo-500/10 hover:to-purple-500/10 transition-all duration-500">
+          <details class="group">
+            <summary class="flex justify-between items-center cursor-pointer list-none">
+              <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-gradient-to-tr from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center text-xl shadow-lg shadow-indigo-500/20">
+                  🧠
+                </div>
+                <div>
+                  <h4 class="text-sm font-bold text-white tracking-wide">Auditoría y Análisis Crítico IA</h4>
+                  <p class="text-white/50 text-xs mt-0.5 font-medium">Haz clic para ver el razonamiento estratégico</p>
+                </div>
+              </div>
+              <div class="w-8 h-8 bg-white/5 rounded-full flex items-center justify-center group-open:bg-white/10 transition-colors">
+                <span class="text-white/60 text-xs group-open:rotate-180 transition-transform duration-300">▼</span>
+              </div>
+            </summary>
+            <div class="mt-6 text-white/80 text-sm leading-relaxed whitespace-pre-line border-t border-white/5 pt-5">
+              <div class="bg-white/[0.02] p-5 rounded-2xl border border-white/5 backdrop-blur-sm">
+                {{ data.planAiReport }}
+              </div>
+            </div>
+          </details>
+        </div>
+
+        <app-ai-plan-timeline [actions]="data.suggestedActions"></app-ai-plan-timeline>
+
+        <app-scenarios-grid></app-scenarios-grid>
+      </div>
+    </div>
+
+    <!-- [SDD Fases 1–5 + Analytics v2] COGNITIVE PREVIEW + ICF TREND + DIMENSION HISTORY -->
+    <section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-500">
+      <app-cognitive-preview></app-cognitive-preview>
+      <app-icf-trend-chart></app-icf-trend-chart>
+      <app-dimension-history-chart></app-dimension-history-chart>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="mt-20 py-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
+      <div class="text-[11px] font-bold text-white/20 tracking-[0.3em] uppercase">
+        Integrity Family • Red Global de Armonía
+      </div>
+      <div class="flex gap-8">
+        <div class="text-center">
+          <span class="block text-xl font-bold text-white/80">{{ data.totalEvaluations }}</span>
+          <span class="text-[9px] text-white/40 uppercase tracking-widest">Diagnósticos</span>
+        </div>
+        <div class="text-center">
+          <span class="block text-xl font-bold text-teal-400">{{ data.completedPlanTasks }} / {{ data.totalPlanTasks }}</span>
+          <span class="text-[9px] text-white/40 uppercase tracking-widest">Misiones</span>
+        </div>
+      </div>
+    </footer>
+
+  </div>
+</ng-container>
+
+<ng-template #loadingTemplate>
+  <div class="flex flex-col items-center justify-center min-h-[60vh]">
+    <div class="w-16 h-16 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin mb-4"></div>
+    <p class="text-white/40 text-sm font-medium animate-pulse">Sincronizando con el Santuario de Conciencia...</p>
+  </div>
+</ng-template>

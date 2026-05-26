@@ -1,0 +1,497 @@
+<div class="dashboard-container">
+  
+  <!-- Encabezado del Dashboard -->
+  <div class="dashboard-header">
+    <div class="dashboard-title-group">
+      <h1 class="dashboard-title">Portal de Transformación Familiar</h1>
+      <div class="family-badge">
+        📂 NODO FAMILIAR ACTIVO: {{ familyCode }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Narrative Guidance Engine -->
+  <app-narrative-companion module="plans"></app-narrative-companion>
+
+  <!-- ACCIONES RÁPIDAS / CAPA PRIVADA -->
+  <div class="quick-actions-bar" style="margin-bottom: 24px; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
+    <div class="glass-card" style="padding: 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border: 1px solid rgba(168, 85, 247, 0.2);" [routerLink]="['/my-space']">
+      <div>
+        <h3 style="margin: 0; color: #fff; font-size: 16px; display: flex; align-items: center; gap: 8px;">
+          <span>🔒</span> Mi Espacio Privado
+        </h3>
+        <p style="margin: 4px 0 0 0; color: #8b949e; font-size: 12px;">Tu bitácora personal de evolución.</p>
+      </div>
+      <span style="font-size: 20px; color: #a855f7;">➔</span>
+    </div>
+  </div>
+
+  <!-- SECCIÓN 0: TABLERO DE PROGRESO DE PILARES EN TIEMPO REAL -->
+  <div class="pillar-progress-board">
+    <!-- Pilar Reconocimiento -->
+    <div class="pillar-card pilar-reconocimiento" [class.active-glow]="activePillar === 'RECONOCIMIENTO'">
+      <div class="pillar-card-header">
+        <span class="pillar-icon">💛</span>
+        <div>
+          <h3 class="pillar-name">Reconocimiento</h3>
+          <span class="pillar-phase-tag">Fase Inicial / Diagnóstico</span>
+        </div>
+      </div>
+      <div class="pillar-progress-info">
+        <div class="percentage-display">{{ pillarProgress.reconocimiento.percentage }}%</div>
+        <div class="tasks-counter">
+          {{ pillarProgress.reconocimiento.completed }} de {{ pillarProgress.reconocimiento.total }} compromisos
+        </div>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-glow recognition-glow" [style.width]="pillarProgress.reconocimiento.percentage + '%'"></div>
+      </div>
+      @if (activePillar === 'RECONOCIMIENTO') {
+        <div class="active-pulse-indicator"><span class="pulse-dot"></span> Pilar Activo</div>
+      }
+    </div>
+
+    <!-- Pilar Amor -->
+    <div class="pillar-card pilar-amor" [class.active-glow]="activePillar === 'AMOR'">
+      <div class="pillar-card-header">
+        <span class="pillar-icon">💖</span>
+        <div>
+          <h3 class="pillar-name">Amor</h3>
+          <span class="pillar-phase-tag">Conexión / Confianza</span>
+        </div>
+      </div>
+      <div class="pillar-progress-info">
+        <div class="percentage-display">{{ pillarProgress.amor.percentage }}%</div>
+        <div class="tasks-counter">
+          {{ pillarProgress.amor.completed }} de {{ pillarProgress.amor.total }} compromisos
+        </div>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-glow amor-glow" [style.width]="pillarProgress.amor.percentage + '%'"></div>
+      </div>
+      @if (activePillar === 'AMOR') {
+        <div class="active-pulse-indicator"><span class="pulse-dot"></span> Pilar Activo</div>
+      }
+    </div>
+
+    <!-- Pilar Entrega -->
+    <div class="pillar-card pilar-entrega" [class.active-glow]="activePillar === 'ENTREGA'">
+      <div class="pillar-card-header">
+        <span class="pillar-icon">👑</span>
+        <div>
+          <h3 class="pillar-name">Entrega</h3>
+          <span class="pillar-phase-tag">Trascendencia / Legado</span>
+        </div>
+      </div>
+      <div class="pillar-progress-info">
+        <div class="percentage-display">{{ pillarProgress.entrega.percentage }}%</div>
+        <div class="tasks-counter">
+          {{ pillarProgress.entrega.completed }} de {{ pillarProgress.entrega.total }} compromisos
+        </div>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-glow entrega-glow" [style.width]="pillarProgress.entrega.percentage + '%'"></div>
+      </div>
+      @if (activePillar === 'ENTREGA') {
+        <div class="active-pulse-indicator"><span class="pulse-dot"></span> Pilar Activo</div>
+      }
+    </div>
+  </div>
+
+  <!-- SECCIÓN 1: RUTA DE EVOLUCIÓN — 3 PILARES DE CONCIENCIA -->
+  <div class="glass-card premium-timeline-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 20px;">
+      <h2 class="card-title" style="margin: 0;">
+        <i>🗺️</i> Ruta de Evolución Clínica — Hitos de 36 Meses
+      </h2>
+      <div style="font-size: 13px; color: #8b949e; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); padding: 6px 14px; border-radius: 20px; display: flex; align-items: center; gap: 8px;">
+        <span class="pulse-dot"></span> Hito actual: <strong style="color: #f5b041;">{{ familyDashboard?.currentMilestone || 'W1' }}</strong>
+      </div>
+    </div>
+
+    <!-- Acordeón Desplegable Progresivo -->
+    <div style="margin-bottom: 8px;">
+      <button type="button" 
+              (click)="showFullTimeline = !showFullTimeline" 
+              class="timeline-toggle-btn">
+        <span>{{ showFullTimeline ? '▼ Ocultar ruta de hitos' : '▶ Ver ruta completa' }}</span>
+      </button>
+    </div>
+    
+    <div class="timeline-roadmap-container" *ngIf="showFullTimeline" style="animation: fadeIn 0.4s ease-out; margin-top: 24px;">
+      <div class="timeline-vertical-line"></div>
+      
+      <div class="timeline-items-wrapper">
+        @for (m of milestones; track m.code) {
+          <div class="timeline-step-row" 
+               [class.active-step]="m.orderIndex === getCurrentMilestoneOrderIndex()"
+               [class.completed-step]="m.orderIndex < getCurrentMilestoneOrderIndex()">
+            
+            <!-- Indicador de Nodo Lumínico -->
+            <div class="step-indicator-node">
+              <div class="node-dot">
+                @if (m.orderIndex < getCurrentMilestoneOrderIndex()) {
+                  <span class="check-icon">✓</span>
+                } @else if (m.orderIndex === getCurrentMilestoneOrderIndex()) {
+                  <span class="active-pulse-node"></span>
+                } @else {
+                  <span class="pending-dot"></span>
+                }
+              </div>
+            </div>
+
+            <!-- Contenido del Hito -->
+            <div class="step-content-card">
+              <div class="step-header-meta">
+                <span class="step-month">{{ getMilestoneMonthLabel(m.code) }}</span>
+                <span class="step-emoji">{{ getMilestoneEmoji(m.code) }}</span>
+                
+                <!-- Chip del Pilar Mapeado -->
+                <span class="step-pillar-badge" [ngClass]="{
+                  'pillar-badge-rec': m.code === 'W1' || m.code === 'M1' || m.code === 'M2' || m.code === 'M3',
+                  'pillar-badge-amor': m.code === 'M4' || m.code === 'M5' || m.code === 'M6' || m.code === 'M9' || m.code === 'M12',
+                  'pillar-badge-ent': m.code !== 'W1' && m.code !== 'M1' && m.code !== 'M2' && m.code !== 'M3' && m.code !== 'M4' && m.code !== 'M5' && m.code !== 'M6' && m.code !== 'M9' && m.code !== 'M12'
+                }">
+                  @if (m.code === 'W1' || m.code === 'M1' || m.code === 'M2' || m.code === 'M3') {
+                    Reconocimiento
+                  } @else if (m.code === 'M4' || m.code === 'M5' || m.code === 'M6' || m.code === 'M9' || m.code === 'M12') {
+                    Amor
+                  } @else {
+                    Entrega
+                  }
+                </span>
+
+                <!-- Estado del Hito -->
+                <span class="step-status-tag" [ngClass]="{
+                  'tag-completed': m.orderIndex < getCurrentMilestoneOrderIndex(),
+                  'tag-active': m.orderIndex === getCurrentMilestoneOrderIndex(),
+                  'tag-pending': m.orderIndex > getCurrentMilestoneOrderIndex()
+                }">
+                  {{ getMilestoneStatusText(m) }}
+                </span>
+              </div>
+              
+              <div class="step-details-body">
+                <h4 class="step-title">{{ m.title }}</h4>
+                <p class="step-description">
+                  @if (m.orderIndex < getCurrentMilestoneOrderIndex()) {
+                    Hito consolidado con éxito. Evolución completada para este período de la transformación.
+                  } @else if (m.orderIndex === getCurrentMilestoneOrderIndex()) {
+                    Fase clínica activa. Complete las misiones sugeridas y suba la evidencia requerida para desbloquear el avance.
+                  } @else {
+                    Fase futura de madurez y asimilación de hábitos familiares en la ruta longitudinal.
+                  }
+                </p>
+              </div>
+            </div>
+            
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+
+  <!-- SECCIÓN 2: MISIONES Y TAREAS ACTIVAS (IA CLINICAL PLANS) -->
+  <div class="glass-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 20px;">
+      <h2 class="card-title" style="margin: 0;">
+        <i>📌</i> Misiones Activas de Transformación
+      </h2>
+      <div style="background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.3); padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: bold; color: #c084fc;">
+        Pilar Activo: {{ activePillar }}
+      </div>
+    </div>
+
+    <!-- PROPUESTA DE SENTINEL AI: PLAN DE DECISIÓN ACTIVA -->
+    @if (plans.length > 0 && proposedMissions.length > 0) {
+      <div class="proposed-missions-box" style="margin-bottom: 32px; padding: 20px; background: rgba(168, 85, 247, 0.03); border: 1px solid rgba(168, 85, 247, 0.2); border-radius: 12px; animation: fadeIn 0.4s ease-out;">
+        <div style="margin-bottom: 16px;">
+          <h3 style="margin: 0; color: #c084fc; font-size: 16px; display: flex; align-items: center; gap: 8px;">
+            <span>🔮</span> Sentinel AI: Tu Turno de Decidir
+          </h3>
+          <p style="margin: 4px 0 0 0; color: #ab7df6; font-size: 13px; opacity: 0.85;">¿Cuál de estas dos misiones diagnósticas proporcionadas por la IA desean comprometerse a cumplir juntos esta semana?</p>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px;">
+          @for (m of proposedMissions; track m.title) {
+            <div [style.borderLeft]="'3px solid ' + getDimensionColor(m.dimension)" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); padding: 16px; border-radius: 8px; display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.2s ease;">
+              <div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                  <span [style.background]="getDimensionBg(m.dimension)" [style.color]="getDimensionColor(m.dimension)" style="font-family: monospace; font-size: 10px; font-weight: bold; padding: 2px 8px; border-radius: 4px; text-transform: uppercase;">
+                    {{ m.dimension }}
+                  </span>
+                  @if (m.isAi) {
+                    <span style="font-size: 10px; padding: 2px 6px; background: rgba(56, 139, 253, 0.15); color: #58a6ff; border: 1px solid rgba(56, 139, 253, 0.3); border-radius: 4px; font-weight: 600;">🧠 IA: DIAGNÓSTICO</span>
+                  } @else {
+                    <span style="font-size: 10px; padding: 2px 6px; background: rgba(168, 85, 247, 0.1); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.25); border-radius: 4px; font-weight: 600;">⚡ MICRO-ACCIÓN</span>
+                  }
+                </div>
+                <h4 style="font-size: 14px; font-weight: 600; color: #fff; margin: 0 0 6px 0;">{{ m.title }}</h4>
+                <p style="color: #8b949e; font-size: 12px; line-height: 1.4; margin: 0 0 16px 0;">{{ m.description }}</p>
+              </div>
+              
+              <button (click)="selectProposedMission(m)" style="width: 100%; background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%); border: none; color: white; padding: 8px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; transition: opacity 0.2s;">
+                🎯 Elegir esta Misión
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+    }
+    
+    @if (planes.length > 0) {
+      <div class="missions-list">
+        @for (plan of planes; track plan.id) {
+          <div class="misiones-container">
+            <div class="plan-header">
+              <h3>📌 {{ plan.titulo }}</h3>
+              <span class="badge-pilar">Pilar Activo: {{ plan.pilar }}</span>
+            </div>
+
+            <p class="vision-text"><em>Visión Familiar: "{{ plan.visionFamiliar }}"</em></p>
+            
+            <div class="progress-wrapper">
+              <div style="display: flex; flex-direction: column; width: 100%; gap: 6px;">
+                <div style="display: flex; justify-content: space-between; font-weight: 600; font-size: 12px;">
+                  <span>Progreso del Pilar: {{ plan.progresoPilar }}%</span>
+                  <small>{{ plan.misionesLogradas }} de {{ plan.misionesTotales }} misiones logradas</small>
+                </div>
+                <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden;">
+                  <div [style.width]="plan.progresoPilar + '%'" style="height: 100%; background: linear-gradient(90deg, #a855f7 0%, #6366f1 100%); transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="misiones-grid">
+              @for (mision of plan.misiones; track mision.id) {
+                <div class="card-mision">
+                  <div class="card-header">
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                      <h4 style="margin: 0;">{{ mision.titulo }}</h4>
+                      @if (mision.isAi) {
+                        <span style="font-size: 10px; padding: 2px 6px; background: rgba(56, 139, 253, 0.15); color: #58a6ff; border: 1px solid rgba(56, 139, 253, 0.3); border-radius: 4px; font-weight: 600; width: fit-content; margin-top: 4px;">🧠 IA: DIAGNÓSTICO</span>
+                      }
+                    </div>
+                    <span class="estado-tag" [ngClass]="{
+                      'code-pendiente': mision.estado === 'Pendiente',
+                      'code-progreso': mision.estado === 'En_Progreso',
+                      'code-completado': mision.estado === 'Completada'
+                    }">{{ mision.estado === 'Completada' ? '✓ Lograda' : (mision.estado === 'En_Progreso' ? '● Activa' : '○ Pendiente') }}</span>
+                  </div>
+                  
+                  <p class="desc-general">{{ mision.descripcionGeneral }}</p>
+
+                  <ul class="microacciones-list">
+                    @for (acc of mision.microacciones; track acc.id) {
+                      <li>
+                        <span class="emoji-icon">{{ getEmoji(acc.icono) }}</span>
+                        <span>{{ acc.descripcion }}</span>
+                      </li>
+                    }
+                  </ul>
+
+                  <!-- CLOSED-LOOP EVIDENCE CARD -->
+                  @if (mision.backendTaskId && getTaskEvidence(mision.backendTaskId); as evidence) {
+                    <div style="margin-top: 8px; margin-bottom: 16px; padding: 12px; background: rgba(168, 85, 247, 0.05); border: 1px solid rgba(168, 85, 247, 0.15); border-radius: 8px;">
+                      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <span style="font-size: 10px; font-weight: bold; color: #c084fc; text-transform: uppercase; letter-spacing: 0.5px;">📝 Evidencia Registrada</span>
+                        <span style="font-size: 9.5px; padding: 2px 6px; border-radius: 4px; font-weight: 600;" 
+                              [ngClass]="{
+                                'bg-success-subtle text-success border border-success-subtle': evidence.status === 'VALIDATED',
+                                'bg-warning-subtle text-warning border border-warning-subtle': evidence.status === 'PENDING'
+                              }">
+                          {{ evidence.status === 'VALIDATED' ? '✓ Validada' : '⏳ En Análisis' }}
+                        </span>
+                      </div>
+                      <p style="margin: 0 0 4px 0; font-size: 12.5px; color: #fff; font-weight: 600;">
+                        {{ evidence.title }}
+                      </p>
+                      @if (evidence.textContent) {
+                        <p style="margin: 0 0 8px 0; font-size: 12px; color: #8b949e; font-style: italic; line-height: 1.4;">
+                          "{{ evidence.textContent }}"
+                        </p>
+                      }
+                      <div style="display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: #6e7681; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 6px; margin-top: 4px;">
+                        <span>Enviado por: <strong style="color: #c9d1d9;">{{ evidence.submittedBy }}</strong></span>
+                        @if (evidence.status === 'VALIDATED') {
+                          <span style="color: #3fb950; font-weight: 600;">Calidad: {{ evidence.humanScore || evidence.aiScore || 90 | number:'1.0-0' }}%</span>
+                        }
+                      </div>
+                    </div>
+                  }
+
+                  <div class="actions-footer">
+                    <button class="btn-comenzar" 
+                            (click)="comenzarMision(plan, mision)"
+                            [style.background]="mision.estado === 'Completada' ? 'rgba(255,255,255,0.05)' : 'rgba(56, 189, 248, 0.1)'"
+                            [style.color]="mision.estado === 'Completada' ? '#8b949e' : '#38bdf8'"
+                            [style.borderColor]="mision.estado === 'Completada' ? 'rgba(255,255,255,0.1)' : 'rgba(56, 189, 248, 0.3)'"
+                            style="border: 1px solid; padding: 8px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s;">
+                      {{ mision.estado === 'Completada' ? 'Desmarcar' : (mision.backendTaskId ? 'Completar' : 'Comenzar') }}
+                    </button>
+                    <button class="btn-evidencia" 
+                            [disabled]="!mision.backendTaskId"
+                            (click)="openMisionEvidence(mision)"
+                            [style.opacity]="mision.backendTaskId ? 1 : 0.5"
+                            [style.cursor]="mision.backendTaskId ? 'pointer' : 'not-allowed'"
+                            style="background: rgba(168, 85, 247, 0.1); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3); padding: 8px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; transition: all 0.2s;">
+                      ✍️ Evidencia
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="empty-state">
+        <span>⚠️ [ALERTA]</span>
+        <p>No se encontraron misiones de transformación activas para la familia López Rivera. Diagnóstico o recalibración clínica requerida.</p>
+      </div>
+    }
+  </div>
+
+</div>
+
+<!-- CONSOLA INTERACTIVA SENTINEL (DRAWER COLAPSIBLE AL PIE) -->
+<div class="cli-drawer" [class.collapsed]="isCliCollapsed">
+  
+  <!-- Barra de Título / Pestaña de Control -->
+  <div class="cli-drawer-header" (click)="toggleCli()">
+    <div class="cli-drawer-title">
+      <div class="cli-drawer-pulse"></div>
+      <span>SENTINEL_CLI_v4.5</span>
+    </div>
+    <div class="cli-drawer-toggle-btn">
+      {{ isCliCollapsed ? '▲ EXPANDIR CONSOLA' : '▼ COLAPSAR CONSOLA' }}
+    </div>
+  </div>
+
+  <!-- Cuerpo de Consola Activa -->
+  <div class="cli-drawer-body" (click)="cmdInput.focus()">
+    <div class="cli-drawer-line comment">*/ CONSOLA DE SEGURIDAD OPERACIONAL Y CONTROL DE HITOS /*</div>
+    <div class="cli-drawer-line comment">*/ Escribe "ayuda" o "help" para ver la lista de comandos disponibles. /*</div>
+    
+    @if (terminalLogs.length > 0) {
+      @for (log of terminalLogs; track log) {
+        <div class="cli-drawer-line" 
+             [style.color]="log.startsWith('$') ? '#79c0ff' : (log.includes('❌') || log.includes('🚨') || log.includes('⚠️') ? '#ff7b72' : (log.includes('✅') || log.includes('🚀') ? '#3fb950' : '#8b949e'))">
+          {{ log }}
+        </div>
+      }
+    }
+
+    <!-- Prompt de Comando -->
+    <div class="cli-drawer-prompt">
+      <span class="cli-drawer-user">sentinel&#64;if-core</span>
+      <span class="cli-colon">:</span>
+      <span class="cli-drawer-path">~/family/{{ familyId || '0001' }}/plans</span>
+      <span class="cli-drawer-cursor">$</span>
+      <input #cmdInput 
+             type="text" 
+             class="cli-drawer-input" 
+             (keyup.enter)="onCommand(cmdInput.value); cmdInput.value=''" 
+             placeholder="Escribe un comando... (ej: 'ayuda')" 
+             autocomplete="off" />
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL DE ENVÍO DE EVIDENCIAS PREMIUM (CLOSED-LOOP) -->
+@if (isEvidenceModalOpen) {
+  <div class="modal-backdrop-premium" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; z-index: 9999;">
+    <div class="modal-card-premium glass-card" style="width: 100%; max-width: 550px; background: rgba(18, 18, 18, 0.85); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 24px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);">
+      
+      <!-- Cabecera -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 12px;">
+        <h3 style="margin: 0; color: #fff; font-size: 18px; display: flex; align-items: center; gap: 8px;">
+          <span>🔒 Sentinel AI</span>
+          <span style="font-size: 11px; font-weight: normal; background: rgba(56, 139, 253, 0.2); border: 1px solid rgba(56, 139, 253, 0.4); color: #58a6ff; padding: 2px 6px; border-radius: 4px;">ANÁLISIS COGNITIVO</span>
+        </h3>
+        <button (click)="closeEvidenceModal()" style="background: none; border: none; color: #8b949e; font-size: 20px; cursor: pointer;">&times;</button>
+      </div>
+
+      <!-- Cuerpo -->
+      <div>
+        <p style="font-size: 13px; color: #8b949e; margin-bottom: 20px;">
+          Aportar evidencia conductual para la misión: <strong style="color: #fff;">"{{ activeModalTask?.title }}"</strong>.
+        </p>
+
+        <!-- Título -->
+        <div style="margin-bottom: 16px;">
+          <label style="display: block; font-size: 11px; text-transform: uppercase; color: #8b949e; font-weight: 600; margin-bottom: 6px;">Título del Envío</label>
+          <input type="text" [(ngModel)]="evidenceForm.title" style="width: 100%; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #fff; padding: 10px; font-size: 14px; box-sizing: border-box;" placeholder="Ej: Registro del compromiso familiar" />
+        </div>
+
+        <!-- REGISTRO SÚPER RÁPIDO (< 30 SEGUNDOS) -->
+        @if (evidenceForm.evidenceType === 'BITACORA') {
+          <div style="background: rgba(168, 85, 247, 0.05); border: 1px dashed rgba(168, 85, 247, 0.25); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+            <h4 style="margin: 0 0 12px 0; font-size: 13px; color: #c084fc; display: flex; align-items: center; gap: 6px;">
+              <span>⚡</span> Registro Rápido Familiar
+            </h4>
+            
+            <!-- Emojis de Sentimiento -->
+            <div style="margin-bottom: 12px;">
+              <label style="display: block; font-size: 11px; text-transform: uppercase; color: #8b949e; font-weight: 600; margin-bottom: 6px;">¿Cómo se sintieron hoy realizando la misión?</label>
+              <div style="display: flex; gap: 12px;">
+                <button type="button" (click)="setFeelingEmoji('😊')" [style.background]="evidenceForm.feelingEmoji === '😊' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255,255,255,0.03)'" [style.borderColor]="evidenceForm.feelingEmoji === '😊' ? '#10b981' : 'rgba(255,255,255,0.1)'" style="flex: 1; border: 1px solid; border-radius: 8px; padding: 8px; font-size: 20px; cursor: pointer; transition: all 0.2s;">😊 <span style="font-size: 11px; display: block; margin-top: 4px; color: #8b949e;">Conectados</span></button>
+                <button type="button" (click)="setFeelingEmoji('😐')" [style.background]="evidenceForm.feelingEmoji === '😐' ? 'rgba(245, 158, 110, 0.2)' : 'rgba(255,255,255,0.03)'" [style.borderColor]="evidenceForm.feelingEmoji === '😐' ? '#f59e0b' : 'rgba(255,255,255,0.1)'" style="flex: 1; border: 1px solid; border-radius: 8px; padding: 8px; font-size: 20px; cursor: pointer; transition: all 0.2s;">😐 <span style="font-size: 11px; display: block; margin-top: 4px; color: #8b949e;">Normal</span></button>
+                <button type="button" (click)="setFeelingEmoji('😞')" [style.background]="evidenceForm.feelingEmoji === '😞' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(255,255,255,0.03)'" [style.borderColor]="evidenceForm.feelingEmoji === '😞' ? '#ef4444' : 'rgba(255,255,255,0.1)'" style="flex: 1; border: 1px solid; border-radius: 8px; padding: 8px; font-size: 20px; cursor: pointer; transition: all 0.2s;">😞 <span style="font-size: 11px; display: block; margin-top: 4px; color: #8b949e;">Tensión</span></button>
+              </div>
+            </div>
+            
+            <!-- Micro-reflexión -->
+            <div>
+              <label style="display: block; font-size: 11px; text-transform: uppercase; color: #8b949e; font-weight: 600; margin-bottom: 6px;">Micro-Reflexión Familiar (Máx. 140 carac.)</label>
+              <input type="text" [(ngModel)]="evidenceForm.textContent" maxlength="140" style="width: 100%; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.10); border-radius: 6px; color: #fff; padding: 8px 12px; font-size: 13.5px; box-sizing: border-box;" placeholder="Cuéntanos en pocas palabras tu micro-victoria de hoy..." />
+              <span style="font-size: 10px; color: #8b949e; display: block; margin-top: 4px; text-align: right;">{{ 140 - (evidenceForm.textContent.length || 0) }} caracteres restantes</span>
+            </div>
+          </div>
+        }
+
+        <!-- Descripción Ampliada (Opcional) -->
+        <div style="margin-bottom: 16px;">
+          <label style="display: block; font-size: 11px; text-transform: uppercase; color: #8b949e; font-weight: 600; margin-bottom: 6px;">Observaciones Adicionales (Opcional)</label>
+          <textarea [(ngModel)]="evidenceForm.description" rows="2" style="width: 100%; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #fff; padding: 10px; font-size: 13px; resize: none; box-sizing: border-box;" placeholder="Cualquier detalle clínico o familiar extra..."></textarea>
+        </div>
+
+        <!-- URL de Archivo (fileUrl) -->
+        @if (evidenceForm.evidenceType === 'PHOTO') {
+          <div style="margin-bottom: 16px;">
+            <label style="display: block; font-size: 11px; text-transform: uppercase; color: #58a6ff; font-weight: 600; margin-bottom: 6px;">📷 URL de la Captura / Foto</label>
+            <input type="text" [(ngModel)]="evidenceForm.fileUrl" style="width: 100%; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #fff; padding: 10px; font-size: 14px; box-sizing: border-box;" placeholder="https://ejemplo.com/evidencia.jpg" />
+          </div>
+        }
+
+        <!-- Responsable -->
+        <div style="margin-bottom: 24px;">
+          <label style="display: block; font-size: 11px; text-transform: uppercase; color: #8b949e; font-weight: 600; margin-bottom: 6px;">Miembro Responsable</label>
+          <select [(ngModel)]="evidenceForm.submittedBy" style="width: 100%; background: rgba(18, 18, 18, 0.9); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 6px; color: #fff; padding: 10px; font-size: 14px; cursor: pointer; box-sizing: border-box;">
+            <option value="">Selecciona quién lideró la dinámica...</option>
+            @for (m of familyMembers; track m.id) {
+              <option [value]="m.fullName">{{ m.fullName }} ({{ m.roleType }})</option>
+            }
+            <option value="William Rivera">William Rivera (Terapeuta)</option>
+          </select>
+        </div>
+
+        <!-- Botones de Control -->
+        <div style="display: flex; justify-content: flex-end; gap: 12px;">
+          <button (click)="closeEvidenceModal()" style="background: transparent; border: 1px solid rgba(255,255,255,0.15); color: #c9d1d9; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px;">Cancelar</button>
+          <button [disabled]="submittingEvidence" (click)="submitEvidence()" style="background: #238636; border: 1px solid #30853c; color: #fff; padding: 8px 18px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; border-radius: 6px;">
+            @if (submittingEvidence) {
+              <span>⌛ Analizando Coherencia...</span>
+            } @else {
+              <span>🚀 Enviar a Sentinel AI</span>
+            }
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+}

@@ -1,0 +1,145 @@
+.dashboard-root {
+  animation: fadeIn 0.8s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.glass-premium {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+}
+
+.glass-dark {
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(25px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Scrollbar styling for the whole page */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.8);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.2);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 102, 241, 0.4);
+}
+
+.glass-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.glass-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+/* ── IF-TOS Banner ── */
+.tos-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 28px;
+  border-radius: 20px;
+  gap: 16px;
+}
+
+.tos-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.tos-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  border: 1px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.tos-info { display: flex; flex-direction: column; gap: 3px; }
+
+.tos-tag {
+  font-size: 9px;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.35);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+.tos-label {
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.tos-desc {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.tos-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.tos-badge {
+  font-size: 10px;
+  font-weight: 800;
+  padding: 5px 12px;
+  border-radius: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  display: inline-block;
+}
+
+.tos-link {
+  font-size: 12px;
+  font-weight: 700;
+  color: #818cf8;
+  text-decoration: none;
+  transition: color 0.2s;
+  white-space: nowrap;
+}
+.tos-link:hover { color: #a5b4fc; }
+
+/* Variantes de color del badge */
+.tos-emerging   { background: rgba(148,163,184,0.12); color: #94a3b8; border: 1px solid rgba(148,163,184,0.25); }
+.tos-stable     { background: rgba(96,165,250,0.12);  color: #60a5fa; border: 1px solid rgba(96,165,250,0.25); }
+.tos-escalating { background: rgba(249,115,22,0.15);  color: #f97316; border: 1px solid rgba(249,115,22,0.3); animation: tosPulse 2s infinite; }
+.tos-critical   { background: rgba(239,68,68,0.18);   color: #ef4444; border: 1px solid rgba(239,68,68,0.4);  animation: tosPulse 1.5s infinite; }
+.tos-recovering { background: rgba(34,211,238,0.12);  color: #22d3ee; border: 1px solid rgba(34,211,238,0.25); }
+.tos-resolved   { background: rgba(52,211,153,0.12);  color: #34d399; border: 1px solid rgba(52,211,153,0.25); }
+
+@keyframes tosPulse {
+  0%, 100% { box-shadow: 0 0 0 0 currentColor; }
+  50%       { box-shadow: 0 0 0 4px transparent; }
+}
+
+@media (max-width: 640px) {
+  .tos-banner { flex-direction: column; align-items: flex-start; }
+  .tos-right  { width: 100%; justify-content: space-between; }
+}

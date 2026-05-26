@@ -1,0 +1,318 @@
+:host {
+  display: block;
+  min-height: 100dvh;
+}
+
+/* --- Estilos Base Premium con Glassmorphism Responsivo --- */
+.login-page {
+  min-height: 100dvh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(12px, 4vw, 48px);
+  overflow: hidden;
+  background: linear-gradient(135deg, #2f2b83, #3c32b4);
+  font-family: 'Inter', sans-serif;
+  box-sizing: border-box;
+}
+
+.login-card {
+  width: min(100%, 520px);
+  max-height: calc(100dvh - 24px);
+  overflow-y: auto;
+  border-radius: clamp(18px, 4vw, 28px);
+  padding: clamp(20px, 4vw, 42px);
+  box-sizing: border-box;
+  
+  /* Glassmorphism de alta fidelidad */
+  background: rgba(255, 255, 255, 0.05); 
+  backdrop-filter: blur(24px);          
+  -webkit-backdrop-filter: blur(24px);  
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); 
+  color: white;
+}
+
+/* Personalización del Scrollbar para el cristal */
+.login-card::-webkit-scrollbar {
+  width: 6px;
+}
+
+.login-card::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+}
+
+/* Logo con efecto hover interactivo */
+.login-logo {
+  width: clamp(80px, 18vw, 130px);
+  height: auto;
+  display: block;
+  margin: 0 auto 12px;
+  border-radius: 20px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.login-logo:hover {
+  transform: translateY(-4px) scale(1.03);
+}
+
+.sub { 
+  text-align: center; 
+  color: rgba(255, 255, 255, 0.7); 
+  font-size: 15px; 
+  margin-bottom: 24px; 
+  font-weight: 500; 
+}
+
+/* Narrative Guidance Engine Support Card integration */
+.login-support-card {
+  display: block;
+  margin-bottom: 24px;
+  width: 100%;
+}
+
+.login-support-card ::ng-deep .companion-card {
+  padding: clamp(16px, 3vw, 28px) !important;
+  border-radius: 24px !important;
+}
+
+/* Formulario e Inputs */
+.login-form {
+  width: 100%;
+}
+
+.form-group { 
+  margin-bottom: 24px; 
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.form-group label.password-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.toggle-password {
+  background: none;
+  border: none;
+  color: #a5b4fc;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.2s;
+}
+
+.toggle-password:hover {
+  color: #ffffff;
+}
+
+.login-form input:not([type="checkbox"]) {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  color: #ffffff;
+  padding: 12px 16px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-sizing: border-box;
+}
+
+.login-form input:not([type="checkbox"])::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.login-form input:not([type="checkbox"]):focus {
+  outline: none;
+  border-color: #818cf8;
+  background: rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 0 4px rgba(129, 140, 248, 0.2);
+}
+
+/* Regla del usuario para inputs y botones */
+.login-form input,
+.login-form button {
+  width: 100%;
+  min-height: 48px;
+  font-size: clamp(14px, 2vw, 16px);
+}
+
+/* Acciones y Enlaces */
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.remember-me {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+}
+
+.remember-me input {
+  accent-color: #6366f1;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.forgot-link {
+  font-size: 13.5px;
+  color: #a5b4fc;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.forgot-link:hover {
+  color: #ffffff;
+}
+
+.err {
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+  padding: 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+/* Botón Principal */
+.btn-primary {
+  background: linear-gradient(135deg, #4f46e5, #4338ca);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+}
+
+.btn-primary:hover:not([disabled]) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(79, 70, 229, 0.6);
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+}
+
+.btn-primary:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.secure-info {
+  text-align: center;
+  margin-top: 24px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 32px 0 24px;
+}
+
+.footer {
+  text-align: center;
+  font-size: 14.5px;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 20px;
+}
+
+.footer a {
+  color: #a5b4fc;
+  font-weight: 600;
+  text-decoration: none;
+  margin-left: 4px;
+  transition: color 0.2s;
+}
+
+.footer a:hover {
+  color: #ffffff;
+}
+
+.footer-legal {
+  text-align: center;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.footer-legal a {
+  color: rgba(255, 255, 255, 0.5);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.footer-legal a:hover {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* --- MEDIA QUERIES RESPONSIVAS PREMIUM --- */
+@media (max-width: 768px) {
+  .login-page {
+    align-items: flex-start;
+  }
+
+  .login-card {
+    width: 100%;
+    max-height: calc(100dvh - 24px);
+  }
+}
+
+@media (max-width: 480px) {
+  .login-page {
+    padding: 10px;
+  }
+
+  .login-card {
+    max-height: calc(100dvh - 20px);
+    padding: 18px;
+  }
+
+  .form-actions {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}
+
+@media (max-height: 680px) {
+  .login-page {
+    align-items: flex-start;
+  }
+
+  .login-logo {
+    margin-bottom: 12px;
+  }
+
+  .sub {
+    margin-bottom: 16px;
+  }
+
+  .login-card {
+    max-height: calc(100dvh - 16px);
+  }
+}
