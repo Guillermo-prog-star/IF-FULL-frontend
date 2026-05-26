@@ -1,7 +1,8 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectionStrategy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Router, RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { Observable, of, BehaviorSubject, Subject } from 'rxjs';
 import { map, shareReplay, catchError, switchMap, filter, takeUntil } from 'rxjs/operators';
 
@@ -39,6 +40,7 @@ import { NarrativeCompanionComponent } from '../../shared/components/narrative-c
   imports: [
     CommonModule,
     RouterLink,
+    FormsModule,
     IcfStatCardComponent,
     ConsciousnessOrbitComponent,
     AiPlanTimelineComponent,
@@ -59,6 +61,12 @@ export class DashboardPageComponent implements OnInit, OnDestroy {
   private readonly emotionalService = inject(EmotionalEngineService);
   private readonly scannerService   = inject(ScannerService);
   private readonly router           = inject(Router);
+
+  // Estado para modal de WhatsApp
+  readonly showWhatsappModal = signal(false);
+  whatsappNumber             = '';
+  readonly savingWhatsapp    = signal(false);
+  readonly whatsappError     = signal('');
 
   // [SDD] Inyección de Dependencias
   constructor(
@@ -108,6 +116,67 @@ export class DashboardPageComponent implements OnInit, OnDestroy {
     return localStorage.getItem('selectedFamilyName') || 'Familia';
   }
 
+  private checkWhatsappConfiguration(familyId: number): void {
+    if (localStorage.getItem('whatsapp_dismissed') === 'true') {
+      return;
+    }
+    this.http.get<any>('/api/families/mine').subscribe({
+      next: (res) => {
+        const family = res?.data ?? res;
+        if (family && (!family.whatsapp || family.whatsapp.trim() === '')) {
+          this.showWhatsappModal.set(true);
+        }
+      },
+      error: (err) => console.warn('⚠️ [WHATSAPP-CHECK] Error consultando datos de familia:', err)
+    });
+  }
+
+  activateWhatsapp(): void {
+    const num = this.whatsappNumber.trim();
+    if (num.length < 10) {
+      this.whatsappError.set('Ingresa un número de celular válido de 10 dígitos.');
+      return;
+    }
+    const familyId = this.familyState.getSelectedFamilyId();
+    if (!familyId) return;
+
+    this.savingWhatsapp.set(true);
+    this.whatsappError.set('');
+
+    this.http.get<any>(`/api/families/${familyId}`).subscribe({
+      next: (res) => {
+        const familyData = res?.data ?? res;
+        familyData.whatsapp = num;
+
+        this.http.put<any>(`/api/families/${familyId}`, familyData).subscribe({
+          next: (updateRes) => {
+            const updatedFamily = updateRes?.data ?? updateRes;
+            this.familyState.setFamily(updatedFamily);
+            this.savingWhatsapp.set(false);
+            this.showWhatsappModal.set(false);
+            console.log('✅ [WHATSAPP-ACTIVATED] WhatsApp activado con éxito.');
+          },
+          error: (err) => {
+            console.error('❌ [WHATSAPP-ACTIVATION-FAILED] Error guardando WhatsApp:', err);
+            this.savingWhatsapp.set(false);
+            this.whatsappError.set('Error guardando la información. Intenta de nuevo.');
+          }
+        });
+      },
+      error: (err) => {
+        console.error('❌ [WHATSAPP-CHECK-FAILED] Error recuperando datos de familia:', err);
+        this.savingWhatsapp.set(false);
+        this.whatsappError.set('Error al recuperar datos. Intenta de nuevo.');
+      }
+    });
+  }
+
+  dismissWhatsappModal(): void {
+    localStorage.setItem('whatsapp_dismissed', 'true');
+    this.showWhatsappModal.set(false);
+    console.log('💤 [WHATSAPP-DISMISSED] El modal de WhatsApp ha sido pospuesto.');
+  }
+
   ngOnInit(): void {
     // Suscripción reactiva: cuando se resuelve el familyId, carga las alertas IF-ALT.
     this.resolvedFamilyId$.pipe(
@@ -136,6 +205,7 @@ export class DashboardPageComponent implements OnInit, OnDestroy {
               catchError(() => of(50.0)),
               shareReplay(1)
             );
+            this.checkWhatsappConfiguration(familyId);
           } else {
             this.router.navigate(['/families/create']);
           }
@@ -155,6 +225,7 @@ export class DashboardPageComponent implements OnInit, OnDestroy {
         catchError(() => of(50.0)),
         shareReplay(1)
       );
+      this.checkWhatsappConfiguration(familyId);
     }
   }
 

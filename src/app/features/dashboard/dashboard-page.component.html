@@ -283,6 +283,81 @@
       </div>
     </footer>
 
+    <!-- [WHATSAPP-ACTIVATION-MODAL] -->
+    <div class="whatsapp-modal-overlay" *ngIf="showWhatsappModal()">
+      <div class="whatsapp-modal-card glass-premium animate-in fade-in zoom-in duration-500">
+        <div class="modal-icon-wrapper">
+          <span class="lock-icon">🔒</span>
+        </div>
+        
+        <h3>Mantén protegida tu familia</h3>
+        
+        <p class="modal-intro">
+          Activa las alertas automáticas y mantén sincronizada la seguridad emocional de tu hogar.
+        </p>
+
+        <ul class="benefits-list">
+          <li>
+            <span class="check-icon">✓</span>
+            <div>
+              <strong>Alertas de seguridad:</strong>
+              Notificaciones al instante sobre riesgos críticos detectados en el núcleo familiar.
+            </div>
+          </li>
+          <li>
+            <span class="check-icon">✓</span>
+            <div>
+              <strong>Acompañamiento emocional:</strong>
+              Sugerencias y dinámicas recomendadas por Claude según el clima de convivencia.
+            </div>
+          </li>
+          <li>
+            <span class="check-icon">✓</span>
+            <div>
+              <strong>Recuperación de acceso:</strong>
+              Restablecimiento del PIN familiar de forma segura y directa por chat.
+            </div>
+          </li>
+        </ul>
+
+        <div class="input-section">
+          <label>Número de WhatsApp</label>
+          <div class="phone-input-wrapper">
+            <span class="country-prefix">+57</span>
+            <input 
+              type="tel" 
+              [(ngModel)]="whatsappNumber" 
+              name="waNum" 
+              placeholder="300 123 4567" 
+              maxlength="10"
+              (input)="whatsappError.set('')"
+              class="inp"
+            />
+          </div>
+          <div class="error-msg" *ngIf="whatsappError()">
+            {{ whatsappError() }}
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button 
+            (click)="activateWhatsapp()" 
+            class="btn-activate btn-primary"
+            [disabled]="savingWhatsapp() || whatsappNumber.trim().length < 10"
+          >
+            {{ savingWhatsapp() ? 'Activando...' : '✓ Activar WhatsApp' }}
+          </button>
+          <button 
+            (click)="dismissWhatsappModal()" 
+            class="btn-dismiss btn-ghost"
+            [disabled]="savingWhatsapp()"
+          >
+            Ahora no
+          </button>
+        </div>
+      </div>
+    </div>
+
   </div>
 </ng-container>
 
