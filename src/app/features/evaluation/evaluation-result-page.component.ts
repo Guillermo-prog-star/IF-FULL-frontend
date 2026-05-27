@@ -22,7 +22,7 @@ export class EvaluationResultPageComponent implements OnInit {
 
   result: EvaluationResultResponse | null = null;
   loading = true;
-  currentMilestone = localStorage.getItem('currentMilestone') || 'Inicio';
+  get currentMilestone() { return this.familyState.currentMilestone() || 'Inicio'; }
 
   /** Dimensiones en el orden del radar (emociones, comunicacion, habitos, tiempos) */
   readonly dimConfig = [

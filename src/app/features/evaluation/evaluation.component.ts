@@ -60,8 +60,8 @@ export class EvaluationComponent implements OnInit {
   loadQuestions(): void {
     if (this.familyId === 0) return;
 
-    // Lee el hito actual del localStorage si está disponible (lo guarda el DashboardService)
-    const milestone = localStorage.getItem('currentMilestone') ?? undefined;
+    // Lee el hito actual desde el servicio de estado (fuente reactiva única)
+    const milestone = this.familyState.currentMilestone() || undefined;
 
     this.assessmentService.getRandomQuestions(this.familyId, milestone).subscribe({
       next: (data: Question[]) => {
