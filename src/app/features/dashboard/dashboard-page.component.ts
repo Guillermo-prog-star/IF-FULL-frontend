@@ -115,7 +115,7 @@ export class DashboardPageComponent implements OnInit, OnDestroy {
   readonly alerts$ = this._alerts.asObservable();
 
   get familyName(): string {
-    return localStorage.getItem('selectedFamilyName') || 'Familia';
+    return this.familyState.currentFamilyName() || 'Familia';
   }
 
   get guardianFamilyId(): number {
