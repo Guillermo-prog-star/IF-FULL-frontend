@@ -26,6 +26,7 @@ export class MemberListPageComponent implements OnInit {
   fullName = ''; role = 'PADRE'; age = 30; aut = 70; resp = 70;
   error = ''; saving = false;
   inviteMessage = ''; inviteSuccess = false;
+  pendingDeleteId: number | null = null;
 
   get familyId(): number | null {
     const fromSignal = this.familyState.currentFamilyId();
@@ -148,10 +149,20 @@ export class MemberListPageComponent implements OnInit {
       });
   }
 
-  remove(id: number) {
-    if (!confirm('¿Eliminar este miembro?')) return;
+  remove(id: number): void {
+    this.pendingDeleteId = id;
+  }
+
+  confirmRemove(): void {
+    if (this.pendingDeleteId === null) return;
+    const id = this.pendingDeleteId;
+    this.pendingDeleteId = null;
     this.http.delete<any>(`${this.api.base}/members/${id}`)
       .subscribe({ next: () => this.load() });
+  }
+
+  cancelRemove(): void {
+    this.pendingDeleteId = null;
   }
 
   goToEvaluation() {
