@@ -111,8 +111,8 @@ export class PortalFamiliarComponent implements OnInit, OnDestroy {
       this.userFullName = currentUser.fullName;
       this.roleLabel    = currentUser.role;
     }
-    this.familyId  = this.familyState.getSelectedFamilyId();
-    this.familyName = localStorage.getItem('selectedFamilyName') || 'Familia';
+    this.familyId   = this.familyState.getSelectedFamilyId();
+    this.familyName = this.familyState.currentFamilyName() || 'Familia';
 
     if (this.familyId) {
       this.loadAllData();

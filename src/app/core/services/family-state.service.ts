@@ -5,14 +5,16 @@ import { Injectable, signal } from '@angular/core';
 })
 export class FamilyStateService {
   // Signal para guardar el estado del ID de familia seleccionado
-  private readonly familyIdSignal = signal<number>(this.getInitialState());
-
+  private readonly familyIdSignal   = signal<number>(this.getInitialState());
   // Signal para guardar el estado del nombre de la familia seleccionada
   private readonly familyNameSignal = signal<string>(this.getInitialFamilyName());
+  // Signal para el código de familia (ej. IF-CO-QUI-2026-0001)
+  private readonly familyCodeSignal = signal<string>(localStorage.getItem('selectedFamilyCode') ?? '');
 
   // Exponemos los signals de solo lectura para componentes reactivos
-  public readonly currentFamilyId = this.familyIdSignal.asReadonly();
+  public readonly currentFamilyId   = this.familyIdSignal.asReadonly();
   public readonly currentFamilyName = this.familyNameSignal.asReadonly();
+  public readonly currentFamilyCode = this.familyCodeSignal.asReadonly();
 
   constructor() { }
 
@@ -41,11 +43,13 @@ export class FamilyStateService {
     
     this.familyIdSignal.set(family.id);
     const familyName = family.name || 'Familia';
+    const familyCode = family.familyCode || '';
     this.familyNameSignal.set(familyName);
+    this.familyCodeSignal.set(familyCode);
 
     localStorage.setItem('selectedFamilyId', family.id.toString());
     localStorage.setItem('selectedFamilyName', familyName);
-    localStorage.setItem('selectedFamilyCode', family.familyCode || '');
+    localStorage.setItem('selectedFamilyCode', familyCode);
   }
 
   /**
@@ -61,6 +65,7 @@ export class FamilyStateService {
   clearFamily(): void {
     this.familyIdSignal.set(0);
     this.familyNameSignal.set('');
+    this.familyCodeSignal.set('');
     localStorage.removeItem('selectedFamilyId');
     localStorage.removeItem('selectedFamilyName');
     localStorage.removeItem('selectedFamilyCode');
