@@ -53,6 +53,45 @@ export interface GuardianStatusResponse {
 
 export interface VoteRequest { voterMemberId: number; nominatedMemberId: number; }
 
+export interface MemberPulse {
+  memberId: number;
+  name: string;
+  initials: string;
+  activeThisWeek: boolean;
+  daysSinceLastActivity: number;
+}
+
+export interface DayActivity {
+  dayLabel: string;
+  eventCount: number;
+}
+
+export interface ParticipationPulseResponse {
+  totalMembers: number;
+  activeThisWeek: number;
+  participationRate: number;
+  members: MemberPulse[];
+  weeklyActivity: DayActivity[];
+}
+
+export interface GuardianMemberSummary {
+  memberId: number;
+  name: string;
+  activeThisWeek: boolean;
+  daysSinceLastActivity: number;
+}
+
+export interface GuardianBriefingResponse {
+  guardianName: string;
+  fatigueSignal: 'NONE' | 'MILD' | 'HIGH';
+  activeParticipants: number;
+  inactiveParticipants: number;
+  members: GuardianMemberSummary[];
+  currentMilestone: string | null;
+  planCompletionRate: number;
+  aiMessage: string;
+}
+
 export interface ActivateMissionRequest {
   title: string; description: string;
   category: MissionCategory; durationMinutes: number;
@@ -277,8 +316,16 @@ export interface FamilyAlertDto {
 }
 
 // Chat
-export interface ChatRequest  { familyId: number; message: string; }
+export interface ChatRequest  { familyId: number; message: string; memberId?: number | null; }
 export interface ChatResponse { reply: string; familyCode: string; currentMilestone: string; }
+
+export interface SessionContext {
+  sessionId: number;
+  goal: string;           // GENERAL | SUPPORT | PLANNING | CRISIS_CONTAINMENT
+  emotionalArc: string;   // STABLE | MILD_TENSION | ESCALATING | ESCALATED | DE_ESCALATING
+  turnCount: number;
+  startedAt: string;
+}
 
 export interface DimensionResult {
   dimension: string;

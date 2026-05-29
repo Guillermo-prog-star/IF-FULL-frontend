@@ -58,7 +58,63 @@ export class PlanListPageComponent implements OnInit, OnDestroy {
     submittedBy: '',
     feelingEmoji: ''
   };
-  
+
+  // Estado para la personalización de Iniciativas Familiares (Misiones 4-6)
+  isCreativeModalOpen = false;
+  activeCreativePlan: any = null;
+  activeCreativeMision: any = null;
+  creativeForm = {
+    titulo: '',
+    queBusca: '',
+    accion1: '',
+    accion2: '',
+    accion3: ''
+  };
+
+  // Detalles clínicos y estructurados por hito (36 meses)
+  fasesDetalles: { [key: string]: { queSeHace: string[], resultado: string } } = {
+    'W1': {
+      queSeHace: ['disminuir tensión emocional', 'organizar rutinas mínimas', 'iniciar escucha básica', 'reducir caos relacional', 'establecer seguridad emocional inicial'],
+      resultado: 'La familia logra disminuir reactividad y crear estabilidad básica.'
+    },
+    'M1': {
+      queSeHace: ['identificar emociones', 'reconocer hábitos negativos', 'comprender impacto de acciones', 'iniciar autorreflexión'],
+      resultado: 'Cada miembro comienza a reconocer cómo afecta al sistema familiar.'
+    },
+    'M3': {
+      queSeHace: ['fortalecer comunicación', 'reconstruir confianza', 'establecer acuerdos', 'promover espacios compartidos'],
+      resultado: 'La familia comienza a operar como unidad colaborativa.'
+    },
+    'M6': {
+      queSeHace: ['intervención activa sobre conflictos', 'regulación emocional constante', 'reconstrucción afectiva', 'acompañamiento mutuo'],
+      resultado: 'Se reducen patrones destructivos recurrentes.'
+    },
+    'M9': {
+      queSeHace: ['fortalecer rutinas saludables', 'mantener actividades familiares', 'sostener disciplina emocional', 'practicar acuerdos permanentes'],
+      resultado: 'Los nuevos hábitos comienzan a estabilizarse.'
+    },
+    'M12': {
+      queSeHace: ['coherencia entre emoción, comunicación y acción', 'autonomía emocional', 'convivencia estable', 'confianza sostenida'],
+      resultado: 'La familia alcanza funcionamiento íntegro y consciente.'
+    },
+    'M18': {
+      queSeHace: ['transmisión de valores', 'liderazgo familiar', 'mentoría entre generaciones', 'protección emocional colectiva'],
+      resultado: 'La evolución comienza a impactar nuevas generaciones.'
+    },
+    'M24': {
+      queSeHace: ['construcción de cultura familiar', 'consolidación de identidad', 'rituales positivos', 'memoria compartida'],
+      resultado: 'La familia desarrolla un legado emocional sostenible.'
+    },
+    'M30': {
+      queSeHace: ['servicio', 'expansión del bienestar', 'plenitud relacional', 'estabilidad intergeneracional'],
+      resultado: 'La familia alcanza madurez emocional sostenida y capacidad de inspirar a otros.'
+    },
+    'M36': {
+      queSeHace: ['consolidación de madurez intergeneracional activa', 'cohesión sistémica plena', 'sostenimiento a largo plazo de la autorregulación'],
+      resultado: 'El núcleo familiar alcanza la trascendencia y la plenitud total del hogar.'
+    }
+  };
+
   // Dynamic Milestone states and family metadata
   milestones: any[] = [
     { code: 'W1', label: 'Estabilización', title: 'Estabilización inicial', orderIndex: 1 },
@@ -74,6 +130,7 @@ export class PlanListPageComponent implements OnInit, OnDestroy {
   ];
   familyDashboard: any = null;
   familyMembers: any[] = [];
+
   
   get familyId()   { return this.familyState.currentFamilyId(); }
   get familyCode() { return this.familyState.currentFamilyCode() || 'IF-CO-QUI-2026-0001'; }
@@ -150,6 +207,8 @@ export class PlanListPageComponent implements OnInit, OnDestroy {
         next: (res) => {
           // FIX: AnalyticsController returns ApiResponse<DashboardSummaryResponse> — extract .data
           this.familyDashboard = res?.data ?? res;
+          // Re-adaptar misiones IA-2 al hito real una vez que llega el dashboard
+          this.adaptIaMissionsToDiagnostic();
         },
         error: (err) => console.error('Error fetching dashboard summary:', err)
       });
@@ -273,8 +332,9 @@ export class PlanListPageComponent implements OnInit, OnDestroy {
             entrega: { completed: 0, total: 0, percentage: 0 }
           };
 
-          // Sincronizar dinámicamente con el PLANES_MOCK
+          // Sincronizar dinámicamente con el PLANES_MOCK (6 misiones fijas: 2 clínicas + 2 IA + 2 iniciativas)
           this.planes = JSON.parse(JSON.stringify(PLANES_MOCK));
+          this.adaptIaMissionsToDiagnostic(); // Adaptar misiones IA-2 al hito diagnóstico actual
           
           if (this.plans.length > 0) {
             const planTasks = this.plans[0].tasks || [];
@@ -309,24 +369,33 @@ export class PlanListPageComponent implements OnInit, OnDestroy {
             // Recorrer los planes del Mock y mapear tareas del backend de manera inteligente y multidimensional
             this.planes.forEach(plan => {
               const matchedTasks = planTasks.filter((t: any) => t.dimension.toUpperCase() === plan.pilar.toUpperCase());
-              
-              // Mantener un conjunto de IDs de tareas del backend mapeadas
+
+              // Mantener un conjunto de IDs de tareas del backend mapeadas/excluidas
               const mappedTaskIds = new Set<number>();
-              
+
+              // PRE-FILTRO: excluir tareas genéricas del backend antes de cualquier paso
+              // Así no pueden sobreescribir títulos del mock (paso 1) ni ser inyectadas (paso 2)
+              const GENERIC_PATTERNS = ['misión de reconocimiento', 'misión clínica', 'tarea generada', 'task '];
+              matchedTasks.forEach((t: any) => {
+                if (GENERIC_PATTERNS.some(p => t.title.toLowerCase().startsWith(p))) {
+                  mappedTaskIds.add(t.id);
+                }
+              });
+
               // 1. Sincronizar misiones predefinidas en el mock con tareas que coincidan por título o contexto de hito
               plan.misiones.forEach(mision => {
                 const titleLower = mision.titulo.toLowerCase();
                 const matchedTask = matchedTasks.find(t => {
-                  if (mappedTaskIds.has(t.id)) return false;
-                  
+                  if (mappedTaskIds.has(t.id)) return false; // excluye genéricas y ya usadas
+
                   const tTitle = t.title.toLowerCase();
-                  return tTitle.includes(titleLower) || 
+                  return tTitle.includes(titleLower) ||
                          titleLower.includes(tTitle) ||
                          (titleLower.includes('semáforo') && tTitle.includes('gratitud')) ||
                          (titleLower.includes('cena') && tTitle.includes('diálogo')) ||
                          (titleLower.includes('descanso') && tTitle.includes('responsabilidades'));
                 });
-                
+
                 if (matchedTask) {
                   mision.backendTaskId = matchedTask.id;
                   mision.estado = matchedTask.completed ? 'Completada' : 'En_Progreso';
@@ -338,27 +407,9 @@ export class PlanListPageComponent implements OnInit, OnDestroy {
                   mision.estado = 'Pendiente';
                 }
               });
-              
-              // 2. Inyectar dinámicamente cualquier tarea del backend del pilar no mapeada aún (ej: IA o custom)
-              matchedTasks.forEach(task => {
-                if (!mappedTaskIds.has(task.id)) {
-                  const isAi = task.title.includes('[IA]') || task.title.includes('Sentinel');
-                  plan.misiones.push({
-                    id: 'backend-task-' + task.id,
-                    titulo: task.title,
-                    estado: task.completed ? 'Completada' : 'En_Progreso',
-                    backendTaskId: task.id,
-                    descripcionGeneral: task.description || 'Misión clínica adaptada por la IA.',
-                    isAi: isAi,
-                    microacciones: [
-                      { id: 'ma-ai-1-' + task.id, icono: isAi ? 'psychology' : 'settings', descripcion: task.accionConcreta || 'Realizar la dinámica principal recomendada.' },
-                      { id: 'ma-ai-2-' + task.id, icono: 'assignment', descripcion: task.indicadorCumplimiento || 'Registrar la asimilación o avance del compromiso.' },
-                      { id: 'ma-ai-3-' + task.id, icono: 'done_all', descripcion: task.evidenciaRequerida || 'Reportar la evidencia en el portal familiar.' }
-                    ]
-                  });
-                  mappedTaskIds.add(task.id);
-                }
-              });
+
+              // 2. El mock es la fuente de verdad (6 misiones fijas: 2 clínicas + 2 IA + 2 iniciativas).
+              // No se inyectan tareas del backend — el paso 1 ya sincronizó los estados de completado.
               
               // 3. Calcular progreso dinámico del pilar real
               const completedTasks = matchedTasks.filter((t: any) => t.completed).length;
@@ -593,6 +644,180 @@ export class PlanListPageComponent implements OnInit, OnDestroy {
     const current = this.milestones.find(m => m.code === code);
     return current ? current.orderIndex : 1;
   }
+
+  getQueSeHace(code: string): string[] {
+    return this.fasesDetalles[code]?.queSeHace || ['Desplegar el plan de evolución familiar.'];
+  }
+
+  getResultadoEsperado(code: string): string {
+    return this.fasesDetalles[code]?.resultado || 'Evolución y madurez del núcleo familiar.';
+  }
+
+  /**
+   * Adapta el contenido de las misiones IA-2 (id termina en '-ia-2') al hito diagnóstico actual.
+   * Se llama tras clonar el mock y también cuando llega familyDashboard (ambos son async).
+   */
+  adaptIaMissionsToDiagnostic(): void {
+    if (!this.planes || this.planes.length === 0) return;
+    const milestone = this.familyDashboard?.currentMilestone || 'W1';
+    const fase = this.fasesDetalles[milestone] || this.fasesDetalles['W1'];
+    const qs = fase.queSeHace;
+    const resultado = fase.resultado;
+
+    const contenidos: Record<string, { titulo: string; descripcionGeneral: string; queBusca: string; pasoAPaso: string[] }> = {
+      EMOCIONES: {
+        titulo: '[IA] Diagnóstico Emocional Adaptativo',
+        descripcionGeneral: `Análisis Sentinel de regulación emocional en la fase ${milestone}: ${qs.slice(0, 3).join(' · ')}.`,
+        queBusca: 'Mapear los patrones emocionales dominantes y diseñar intervenciones específicas según el diagnóstico actual.',
+        pasoAPaso: [
+          `Evaluar el indicador de reactividad familiar en el contexto del hito ${milestone}: ${qs[0] || 'observar convivencia'}.`,
+          'Identificar las 2 emociones más frecuentes y disruptivas de la semana.',
+          `Registrar los avances hacia el resultado esperado del hito: "${resultado}".`
+        ]
+      },
+      COMUNICACION: {
+        titulo: '[IA] Mapa de Fricciones Comunicativas',
+        descripcionGeneral: `Diagnóstico Sentinel de patrones comunicativos críticos en la fase ${milestone}: ${qs.slice(0, 3).join(' · ')}.`,
+        queBusca: 'Localizar los bloqueos lingüísticos repetitivos y generar un plan de intervención personalizado.',
+        pasoAPaso: [
+          `Identificar las 3 fricciones comunicativas más frecuentes (fase ${milestone}): ${qs[1] || 'fortalecer comunicación'}.`,
+          'Aplicar la técnica diagnóstica de reformulación asertiva en los conflictos detectados.',
+          `Registrar el progreso esperado hacia: "${resultado}".`
+        ]
+      },
+      HABITOS: {
+        titulo: '[IA] Diagnóstico de Adherencia de Hábitos',
+        descripcionGeneral: `Evaluación Sentinel de sostenibilidad de rutinas en la fase ${milestone}: ${qs.slice(0, 3).join(' · ')}.`,
+        queBusca: 'Determinar qué hábitos están consolidados y cuáles necesitan refuerzo inmediato según el avance clínico.',
+        pasoAPaso: [
+          `Revisar el cumplimiento de rutinas de la fase ${milestone}: ${qs[0] || 'mantener constancia'}.`,
+          'Identificar los 2 hábitos con menor adherencia y su causa raíz.',
+          `Proponer ajuste de refuerzo de 7 días para alcanzar: "${resultado}".`
+        ]
+      },
+      TIEMPOS: {
+        titulo: '[IA] Auditoría de Distribución de Tiempos',
+        descripcionGeneral: `Análisis Sentinel de uso del tiempo relacional en la fase ${milestone}: ${qs.slice(0, 3).join(' · ')}.`,
+        queBusca: 'Detectar fugas de tiempo vincular y redistribuir la agenda familiar hacia espacios de alto impacto afectivo.',
+        pasoAPaso: [
+          `Mapear la distribución de tiempo familiar en la fase ${milestone}.`,
+          'Identificar los 3 bloques de tiempo con mayor fuga relacional.',
+          `Rediseñar la agenda hacia el objetivo del hito: "${resultado}".`
+        ]
+      }
+    };
+
+    this.planes.forEach(plan => {
+      const contenido = contenidos[plan.pilar];
+      if (!contenido) return;
+      const ia2 = plan.misiones.find((m: any) => m.id.endsWith('-ia-2'));
+      if (!ia2) return;
+      ia2.titulo = contenido.titulo;
+      ia2.descripcionGeneral = contenido.descripcionGeneral;
+      ia2.queBusca = contenido.queBusca;
+      ia2.pasoAPaso = contenido.pasoAPaso;
+    });
+  }
+
+  // Getter para verificar si se completó la misión lúdica del Bloque Dorado
+  get isBloqueDoradoUnlocked(): boolean {
+    if (!this.planes || this.planes.length === 0) return false;
+    
+    // Buscar el plan de tiempos
+    const tiemposPlan = this.planes.find(p => p.pilar === 'TIEMPOS');
+    if (!tiemposPlan) return false;
+    
+    // Buscar la misión "El Bloque Familiar Dorado"
+    const bloqueMision = tiemposPlan.misiones.find(m => 
+      m.id === 'mis-tiempos-1' || 
+      m.titulo.toLowerCase().includes('dorado')
+    );
+    
+    // Se desbloquea si la misión está Completada
+    return bloqueMision?.estado === 'Completada';
+  }
+
+  // Avanzar hito clínico de manera asertiva gatillado desde el botón áureo
+  ejecutarAvanceBloqueDorado(): void {
+    if (!this.isBloqueDoradoUnlocked) return;
+    
+    this.terminalLogs.push('🌟 [BLOQUE DORADO]: ¡Felicidades! Han completado la agenda lúdica blindada semanal.');
+    this.terminalLogs.push('🌟 [BLOQUE DORADO]: Iniciando transición de fase evolutiva familiar...');
+    this.scrollToBottom();
+    
+    this.http.post<any>(`${this.api.base}/milestones/family/${this.familyId}/advance`, {})
+      .subscribe({
+        next: (res) => {
+          const nextMilestoneCode = res?.data ?? 'siguiente hito';
+          this.terminalLogs.push(`✅ ÉXITO: ¡Felicidades! La familia ha avanzado formalmente al hito [${nextMilestoneCode}].`);
+          this.terminalLogs.push('🔄 [SISTEMA]: Sincronizando nuevo estado con el motor de IA...');
+          this.scrollToBottom();
+          
+          // Recargar todo el estado dinámico
+          this.loadDashboard();
+          this.load(true);
+        },
+        error: (err) => {
+          this.terminalLogs.push('❌ ERROR: Ocurrió un problema inesperado al registrar el avance en el servidor.');
+          this.scrollToBottom();
+        }
+      });
+  }
+
+  openCreativeModal(plan: PlanTransformacion, mision: Mision) {
+    this.activeCreativePlan = plan;
+    this.activeCreativeMision = mision;
+    this.isCreativeModalOpen = true;
+    
+    // Cargar valores previos o por defecto
+    this.creativeForm = {
+      titulo: mision.titulo.includes('(Iniciativa)') ? mision.titulo.replace(' (Iniciativa)', '') : mision.titulo,
+      queBusca: mision.queBusca || '',
+      accion1: mision.microacciones[0]?.descripcion || '',
+      accion2: mision.microacciones[1]?.descripcion || '',
+      accion3: mision.microacciones[2]?.descripcion || ''
+    };
+  }
+
+  closeCreativeModal() {
+    this.isCreativeModalOpen = false;
+    this.activeCreativePlan = null;
+    this.activeCreativeMision = null;
+  }
+
+  saveCreativeMision() {
+    if (!this.creativeForm.titulo.trim()) return;
+    
+    const plan = this.activeCreativePlan;
+    const mision = this.activeCreativeMision;
+    
+    mision.titulo = `${this.creativeForm.titulo} (Iniciativa)`;
+    mision.queBusca = this.creativeForm.queBusca || 'Iniciativa y creatividad familiar activa.';
+    mision.descripcionGeneral = `Dinámica personalizada: ${mision.titulo}.`;
+    
+    mision.microacciones = [
+      { id: mision.id + '-ma1', icono: 'palette', descripcion: this.creativeForm.accion1 || 'Paso creativo 1' },
+      { id: mision.id + '-ma2', icono: 'timer', descripcion: this.creativeForm.accion2 || 'Paso creativo 2' },
+      { id: mision.id + '-ma3', icono: 'done_all', descripcion: this.creativeForm.accion3 || 'Paso creativo 3' }
+    ];
+    
+    mision.pasoAPaso = [
+      this.creativeForm.accion1 || 'Establecer la dinámica familiar.',
+      this.creativeForm.accion2 || 'Ejecutar el compromiso de mutuo acuerdo.',
+      this.creativeForm.accion3 || 'Subir evidencia fotográfica o nota al portal.'
+    ];
+
+    // Ahora la marcamos lista para ser activada (en progreso)
+    mision.estado = 'En_Progreso';
+    
+    // Inyectar en el CLI para que la familia vea la trazabilidad
+    this.terminalLogs.push(`🎨 [CREATIVIDAD]: La familia ha definido una misión personalizada: "${mision.titulo}".`);
+    this.terminalLogs.push(`⚙️ [CREATIVIDAD]: Misión acoplada. Se inicia el paso a paso en el plan de ${plan.pilar}.`);
+    this.scrollToBottom();
+    
+    this.closeCreativeModal();
+  }
+
 
   getMilestoneMonthLabel(code: string): string {
     if (code.startsWith('W')) {

@@ -95,6 +95,7 @@ export const routes: Routes = [
       // Rutas Transversales
       { path: 'members', loadComponent: () => import('./features/members/member-list-page.component').then(m => m.MemberListPageComponent) },
       { path: 'plans', loadComponent: () => import('./features/plans/plan-list-page.component').then(m => m.PlanListPageComponent) },
+      { path: 'plans/mission/:taskId', loadComponent: () => import('./features/plans/mission-detail-page.component').then(m => m.MissionDetailPageComponent) },
       { path: 'checklist', loadComponent: () => import('./features/checklist/checklist-page.component').then(m => m.ChecklistPageComponent) },
       { path: 'chat', loadComponent: () => import('./features/chat/chat-page.component').then(m => m.ChatPageComponent) },
       { path: 'crisis', loadComponent: () => import('./features/crisis/crisis-page.component').then(m => m.CrisisPageComponent) },
